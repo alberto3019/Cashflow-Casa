@@ -94,10 +94,17 @@ export default function Charts({ userSummary, monthlySummary }: ChartsProps) {
         .reduce((sum, t) => sum + (t.type === 'expense' ? t.amount : 0), 0),
     },
     {
-      name: 'Tarjeta',
-      value: userSummary.transactions.filter(t => t.paymentMethod === 'card').length,
+      name: 'Tarjeta Débito',
+      value: userSummary.transactions.filter(t => t.paymentMethod === 'card' && !t.isCreditCard).length,
       amount: userSummary.transactions
-        .filter(t => t.paymentMethod === 'card')
+        .filter(t => t.paymentMethod === 'card' && !t.isCreditCard)
+        .reduce((sum, t) => sum + (t.type === 'expense' ? t.amount : 0), 0),
+    },
+    {
+      name: 'Tarjeta Crédito',
+      value: userSummary.transactions.filter(t => t.paymentMethod === 'card' && t.isCreditCard).length,
+      amount: userSummary.transactions
+        .filter(t => t.paymentMethod === 'card' && t.isCreditCard)
         .reduce((sum, t) => sum + (t.type === 'expense' ? t.amount : 0), 0),
     },
     {

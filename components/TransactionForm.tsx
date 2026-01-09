@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { User, Transaction, TransactionType, PaymentMethod, IncomeType, ExpenseType } from '@/types';
 import { saveTransaction, updateTransaction, formatCurrency } from '@/lib/storage';
-import { format } from 'date-fns';
+import { format, addMonths } from 'date-fns';
 
 interface TransactionFormProps {
   user: User;
@@ -25,6 +25,14 @@ export default function TransactionForm({ user, transaction, onTransactionAdded,
   const [expenseType, setExpenseType] = useState<ExpenseType>(transaction?.expenseType || 'house'); // Por defecto 'house' (compartido)
   const [isInstallment, setIsInstallment] = useState(transaction?.isInstallment || false);
   const [totalInstallments, setTotalInstallments] = useState<string>(transaction?.totalInstallments?.toString() || '1');
+  const [isCreditCard, setIsCreditCard] = useState<boolean>(transaction?.isCreditCard || false);
+  
+  // Si cambia el método de pago, resetear isCreditCard si no es tarjeta
+  useEffect(() => {
+    if (paymentMethod !== 'card') {
+      setIsCreditCard(false);
+    }
+  }, [paymentMethod]);
   
   // Si es modo edición y es una cuota, no permitir editar cuotas
   useEffect(() => {
@@ -42,6 +50,12 @@ export default function TransactionForm({ user, transaction, onTransactionAdded,
       return;
     }
 
+    // Si es gasto con tarjeta de crédito, ajustar fecha al mes siguiente
+    let transactionDate = new Date(date);
+    if (type === 'expense' && paymentMethod === 'card' && isCreditCard && !isEditMode) {
+      transactionDate = addMonths(transactionDate, 1);
+    }
+
     if (isEditMode && transaction) {
       // Modo edición: actualizar transacción existente
       updateTransaction(transaction.id, {
@@ -49,10 +63,11 @@ export default function TransactionForm({ user, transaction, onTransactionAdded,
         amount: parseFloat(amount),
         description,
         paymentMethod,
-        date: new Date(date).toISOString(),
+        date: transactionDate.toISOString(),
         category: category || undefined,
         incomeType: type === 'income' ? incomeType : undefined,
         expenseType: type === 'expense' ? (expenseType || 'house') : undefined, // Por defecto 'house' (compartido)
+        isCreditCard: paymentMethod === 'card' ? isCreditCard : undefined,
         // No actualizar campos de cuotas en modo edición
       });
     } else {
@@ -64,10 +79,11 @@ export default function TransactionForm({ user, transaction, onTransactionAdded,
         amount: parseFloat(amount),
         description,
         paymentMethod,
-        date: new Date(date).toISOString(),
+        date: transactionDate.toISOString(),
         category: category || undefined,
         incomeType: type === 'income' ? incomeType : undefined,
         expenseType: type === 'expense' ? (expenseType || 'house') : undefined, // Por defecto 'house' (compartido)
+        isCreditCard: paymentMethod === 'card' ? isCreditCard : undefined,
         isInstallment: type === 'expense' && isInstallment,
         totalInstallments: type === 'expense' && isInstallment ? parseInt(totalInstallments) : undefined,
         installmentAmount: type === 'expense' && isInstallment ? parseFloat(amount) / parseInt(totalInstallments) : undefined,
@@ -274,6 +290,44 @@ export default function TransactionForm({ user, transaction, onTransactionAdded,
               🏦 Transferencia
             </button>
           </div>
+          
+          {/* Card Type Selection (only when card is selected) */}
+          {paymentMethod === 'card' && (
+            <div className="mt-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tipo de Tarjeta
+              </label>
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setIsCreditCard(false)}
+                  className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg font-medium transition-all text-xs sm:text-sm ${
+                    !isCreditCard
+                      ? 'bg-green-500 text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  💳 Débito
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsCreditCard(true)}
+                  className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg font-medium transition-all text-xs sm:text-sm ${
+                    isCreditCard
+                      ? 'bg-orange-500 text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  💳 Crédito
+                </button>
+              </div>
+              {isCreditCard && type === 'expense' && (
+                <p className="text-xs text-orange-600 mt-2">
+                  ⚠️ Este gasto se registrará en el mes siguiente (cuando se pague la tarjeta)
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Date */}

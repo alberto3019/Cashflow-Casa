@@ -89,7 +89,11 @@ export default function TransactionList({
                         <span className="flex items-center space-x-1">
                           {transaction.paymentMethod === 'cash' ? '💵' : transaction.paymentMethod === 'card' ? '💳' : '🏦'}
                           <span className="capitalize">
-                            {transaction.paymentMethod === 'cash' ? 'Efectivo / Débito' : transaction.paymentMethod === 'card' ? 'Tarjeta' : 'Transferencia'}
+                            {transaction.paymentMethod === 'cash' 
+                              ? 'Efectivo / Débito' 
+                              : transaction.paymentMethod === 'card' 
+                                ? (transaction.isCreditCard ? 'Tarjeta Crédito' : 'Tarjeta Débito')
+                                : 'Transferencia'}
                           </span>
                         </span>
                         {transaction.type === 'income' && transaction.incomeType && (

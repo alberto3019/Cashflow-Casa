@@ -14,6 +14,7 @@ export interface Transaction {
   paymentMethod: PaymentMethod;
   date: string; // ISO date string
   category?: string;
+  isCreditCard?: boolean; // true si es tarjeta de crédito (gasto para el mes siguiente)
   incomeType?: IncomeType; // Solo para ingresos: 'personal' o 'house'
   expenseType?: ExpenseType; // Solo para gastos: 'personal' o 'house'
   // Campos para cuotas

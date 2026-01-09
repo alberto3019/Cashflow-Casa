@@ -10,7 +10,7 @@ import {
   getPendingInstallments
 } from '@/lib/storage';
 import { format, parseISO, subMonths, addMonths } from 'date-fns';
-import { es } from 'date-fns/locale/es';
+import es from 'date-fns/locale/es';
 import TransactionForm from './TransactionForm';
 import TransactionList from './TransactionList';
 import Charts from './Charts';

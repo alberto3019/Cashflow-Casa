@@ -3,7 +3,7 @@
 import { Transaction, User } from '@/types';
 import { deleteTransaction, formatCurrency, getVisibleTransactions } from '@/lib/storage';
 import { format, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale/es';
+import es from 'date-fns/locale/es';
 
 interface TransactionListProps {
   transactions: Transaction[];

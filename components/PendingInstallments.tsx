@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { User } from '@/types';
 import { getPendingInstallments, deleteTransaction, formatCurrency } from '@/lib/storage';
 import { format, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale/es';
+import es from 'date-fns/locale/es';
 
 interface PendingInstallmentsProps {
   currentUser: User;

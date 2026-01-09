@@ -297,6 +297,72 @@ export default function Charts({ userSummary, monthlySummary }: ChartsProps) {
               {formatCurrency(userSummary.totalExpenses)}
             </span>
           </div>
+          <div className="pl-4 space-y-2 text-sm border-l-2 border-red-200">
+            {/* Gastos por método de pago */}
+            {(() => {
+              const cashExpenses = userSummary.transactions
+                .filter(t => t.type === 'expense' && t.paymentMethod === 'cash')
+                .reduce((sum, t) => sum + t.amount, 0);
+              const cardDebitExpenses = userSummary.transactions
+                .filter(t => t.type === 'expense' && t.paymentMethod === 'card' && !t.isCreditCard)
+                .reduce((sum, t) => sum + t.amount, 0);
+              const cardCreditExpenses = userSummary.transactions
+                .filter(t => t.type === 'expense' && t.paymentMethod === 'card' && t.isCreditCard)
+                .reduce((sum, t) => sum + t.amount, 0);
+              const transferExpenses = userSummary.transactions
+                .filter(t => t.type === 'expense' && t.paymentMethod === 'transfer')
+                .reduce((sum, t) => sum + t.amount, 0);
+              
+              return (
+                <>
+                  {cashExpenses > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 flex items-center space-x-1">
+                        <span>💵</span>
+                        <span>Efectivo / Débito:</span>
+                      </span>
+                      <span className="font-semibold text-red-600">
+                        {formatCurrency(cashExpenses)}
+                      </span>
+                    </div>
+                  )}
+                  {cardDebitExpenses > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 flex items-center space-x-1">
+                        <span>💳</span>
+                        <span>Tarjeta Débito:</span>
+                      </span>
+                      <span className="font-semibold text-red-600">
+                        {formatCurrency(cardDebitExpenses)}
+                      </span>
+                    </div>
+                  )}
+                  {cardCreditExpenses > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 flex items-center space-x-1">
+                        <span>💳</span>
+                        <span>Tarjeta Crédito:</span>
+                      </span>
+                      <span className="font-semibold text-orange-600">
+                        {formatCurrency(cardCreditExpenses)}
+                      </span>
+                    </div>
+                  )}
+                  {transferExpenses > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 flex items-center space-x-1">
+                        <span>🏦</span>
+                        <span>Transferencia:</span>
+                      </span>
+                      <span className="font-semibold text-red-600">
+                        {formatCurrency(transferExpenses)}
+                      </span>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+          </div>
           <div className={`flex items-center justify-between p-4 rounded-lg ${
             userSummary.balance >= 0 ? 'bg-blue-50' : 'bg-orange-50'
           }`}>

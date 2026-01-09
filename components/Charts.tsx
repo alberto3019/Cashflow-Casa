@@ -100,6 +100,13 @@ export default function Charts({ userSummary, monthlySummary }: ChartsProps) {
         .filter(t => t.paymentMethod === 'card')
         .reduce((sum, t) => sum + (t.type === 'expense' ? t.amount : 0), 0),
     },
+    {
+      name: 'Transferencia',
+      value: userSummary.transactions.filter(t => t.paymentMethod === 'transfer').length,
+      amount: userSummary.transactions
+        .filter(t => t.paymentMethod === 'transfer')
+        .reduce((sum, t) => sum + (t.type === 'expense' ? t.amount : 0), 0),
+    },
   ];
 
   const CustomTooltip = ({ active, payload }: any) => {

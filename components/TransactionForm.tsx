@@ -239,11 +239,11 @@ export default function TransactionForm({ user, transaction, onTransactionAdded,
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Método de Pago
           </label>
-          <div className="flex space-x-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
             <button
               type="button"
               onClick={() => setPaymentMethod('cash')}
-              className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg font-medium transition-all text-sm sm:text-base ${
+              className={`py-2.5 sm:py-3 px-2 sm:px-4 rounded-lg font-medium transition-all text-xs sm:text-sm ${
                 paymentMethod === 'cash'
                   ? 'bg-blue-500 text-white shadow-lg'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -254,13 +254,24 @@ export default function TransactionForm({ user, transaction, onTransactionAdded,
             <button
               type="button"
               onClick={() => setPaymentMethod('card')}
-              className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg font-medium transition-all text-sm sm:text-base ${
+              className={`py-2.5 sm:py-3 px-2 sm:px-4 rounded-lg font-medium transition-all text-xs sm:text-sm ${
                 paymentMethod === 'card'
                   ? 'bg-blue-500 text-white shadow-lg'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
               💳 Tarjeta
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('transfer')}
+              className={`py-2.5 sm:py-3 px-2 sm:px-4 rounded-lg font-medium transition-all text-xs sm:text-sm ${
+                paymentMethod === 'transfer'
+                  ? 'bg-blue-500 text-white shadow-lg'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              🏦 Transferencia
             </button>
           </div>
         </div>

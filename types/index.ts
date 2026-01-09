@@ -1,7 +1,7 @@
 export type User = 'Alberto' | 'Victoria';
 
 export type TransactionType = 'income' | 'expense';
-export type PaymentMethod = 'cash' | 'card';
+export type PaymentMethod = 'cash' | 'card' | 'transfer';
 export type IncomeType = 'personal' | 'house'; // personal = ingreso personal, house = ingreso de la casa
 export type ExpenseType = 'personal' | 'house'; // personal = gasto personal, house = gasto de la casa
 

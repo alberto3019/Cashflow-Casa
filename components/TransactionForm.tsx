@@ -249,7 +249,7 @@ export default function TransactionForm({ user, transaction, onTransactionAdded,
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              💵 Efectivo
+              💵 Efectivo / Débito
             </button>
             <button
               type="button"

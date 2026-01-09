@@ -87,7 +87,7 @@ export default function Charts({ userSummary, monthlySummary }: ChartsProps) {
   // Payment method distribution
   const paymentMethodData = [
     {
-      name: 'Efectivo',
+      name: 'Efectivo / Débito',
       value: userSummary.transactions.filter(t => t.paymentMethod === 'cash').length,
       amount: userSummary.transactions
         .filter(t => t.paymentMethod === 'cash')

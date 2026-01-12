@@ -239,3 +239,61 @@ export const getVisibleTransactions = (transactions: Transaction[], currentUser:
   });
 };
 
+// Función para importar transacciones desde un JSON (útil para migración de datos)
+export const importTransactions = (jsonData: string, merge: boolean = false): { success: boolean; count: number; error?: string } => {
+  if (typeof window === 'undefined') {
+    return { success: false, count: 0, error: 'No se puede importar en el servidor' };
+  }
+
+  try {
+    // Parsear el JSON
+    const importedTransactions: Transaction[] = JSON.parse(jsonData);
+    
+    // Validar que sea un array
+    if (!Array.isArray(importedTransactions)) {
+      return { success: false, count: 0, error: 'Los datos deben ser un array de transacciones' };
+    }
+
+    // Validar que cada elemento tenga los campos mínimos requeridos
+    const validTransactions = importedTransactions.filter(t => {
+      return t.id && t.user && t.type && typeof t.amount === 'number' && t.description && t.date;
+    });
+
+    if (validTransactions.length === 0) {
+      return { success: false, count: 0, error: 'No se encontraron transacciones válidas en los datos' };
+    }
+
+    let finalTransactions: Transaction[];
+    
+    if (merge) {
+      // Combinar con transacciones existentes (evitar duplicados por ID)
+      const existingTransactions = getTransactions();
+      const existingIds = new Set(existingTransactions.map(t => t.id));
+      const newTransactions = validTransactions.filter(t => !existingIds.has(t.id));
+      finalTransactions = [...existingTransactions, ...newTransactions];
+    } else {
+      // Reemplazar todas las transacciones
+      finalTransactions = validTransactions;
+    }
+
+    // Guardar en localStorage
+    const serialized = JSON.stringify(finalTransactions);
+    localStorage.setItem(STORAGE_KEY, serialized);
+    emitStorageEvent(STORAGE_KEY, serialized);
+
+    return { 
+      success: true, 
+      count: finalTransactions.length,
+      error: merge && validTransactions.length < importedTransactions.length 
+        ? `${importedTransactions.length - validTransactions.length} transacciones fueron descartadas por ser inválidas o duplicadas`
+        : undefined
+    };
+  } catch (error) {
+    return { 
+      success: false, 
+      count: 0, 
+      error: error instanceof Error ? error.message : 'Error al parsear el JSON' 
+    };
+  }
+};
+

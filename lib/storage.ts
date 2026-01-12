@@ -5,23 +5,40 @@ const STORAGE_KEY = 'household-transactions';
 
 // Función para emitir un evento personalizado cuando localStorage cambia
 const emitStorageEvent = (key: string, newValue: string | null) => {
-  // Emitir evento personalizado para la misma ventana
-  // Esto funciona mejor que StorageEvent que solo funciona entre pestañas
-  const event = new CustomEvent('localStorageChange', {
-    detail: { key, newValue }
-  });
-  window.dispatchEvent(event);
+  // Verificar que window esté disponible (evitar errores en SSR)
+  if (typeof window === 'undefined') return;
+  
+  try {
+    // Emitir evento personalizado para la misma ventana
+    // Esto funciona mejor que StorageEvent que solo funciona entre pestañas
+    const event = new CustomEvent('localStorageChange', {
+      detail: { key, newValue }
+    });
+    window.dispatchEvent(event);
+  } catch (error) {
+    // Silenciar errores si no se puede emitir el evento
+    console.warn('Error al emitir evento de localStorage:', error);
+  }
 };
 
 export const getTransactions = (): Transaction[] => {
   if (typeof window === 'undefined') return [];
   
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) return [];
-  
   try {
-    return JSON.parse(stored);
-  } catch {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return [];
+    
+    const parsed = JSON.parse(stored);
+    // Verificar que sea un array válido
+    if (!Array.isArray(parsed)) {
+      console.warn('Los datos en localStorage no son un array válido. Limpiando...');
+      localStorage.removeItem(STORAGE_KEY);
+      return [];
+    }
+    return parsed;
+  } catch (error) {
+    console.error('Error al leer transacciones de localStorage:', error);
+    // Si hay un error de parseo, no borrar los datos, solo retornar array vacío
     return [];
   }
 };

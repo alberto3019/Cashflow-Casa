@@ -31,17 +31,26 @@ export default function Dashboard({
 }: DashboardProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
-  const [monthlySummary, setMonthlySummary] = useState(getMonthlySummary(currentMonth, user));
-  const [userSummary, setUserSummary] = useState(getUserSummary(user, currentMonth));
+  const [monthlySummary, setMonthlySummary] = useState(() => getMonthlySummary(currentMonth, user));
+  const [userSummary, setUserSummary] = useState(() => getUserSummary(user, currentMonth));
   const [refreshKey, setRefreshKey] = useState(0); // Key para forzar re-render de componentes
 
   const refreshData = () => {
     // Forzar recarga de datos frescos desde localStorage
-    const newMonthlySummary = getMonthlySummary(currentMonth, user);
-    const newUserSummary = getUserSummary(user, currentMonth);
-    setMonthlySummary(newMonthlySummary);
-    setUserSummary(newUserSummary);
-    setRefreshKey(prev => prev + 1); // Incrementar key para forzar re-render
+    try {
+      const newMonthlySummary = getMonthlySummary(currentMonth, user);
+      const newUserSummary = getUserSummary(user, currentMonth);
+      setMonthlySummary(newMonthlySummary);
+      setUserSummary(newUserSummary);
+      setRefreshKey(prev => prev + 1); // Incrementar key para forzar re-render
+    } catch (error) {
+      console.error('Error al refrescar datos:', error);
+      // En caso de error, intentar recargar desde localStorage directamente
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('household-transactions');
+        console.log('Datos en localStorage:', stored ? JSON.parse(stored).length : 0, 'transacciones');
+      }
+    }
   };
 
   useEffect(() => {

@@ -18,13 +18,17 @@ export default function TransactionList({
   onTransactionDeleted,
   onTransactionEdit
 }: TransactionListProps) {
-  // Filtrar transacciones según visibilidad
+  // Las transacciones ya vienen filtradas desde monthlySummary, pero por seguridad
+  // las filtramos nuevamente según visibilidad para asegurar consistencia
   const visibleTransactions = getVisibleTransactions(transactions, currentUser);
 
   const handleDelete = (id: string) => {
     if (confirm('¿Estás seguro de que quieres eliminar esta transacción?')) {
       deleteTransaction(id);
-      onTransactionDeleted();
+      // Pequeño delay para asegurar que localStorage se haya actualizado
+      setTimeout(() => {
+        onTransactionDeleted();
+      }, 50);
     }
   };
 

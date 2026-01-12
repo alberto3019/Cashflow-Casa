@@ -3,6 +3,16 @@ import { format, parseISO, startOfMonth, endOfMonth, addMonths } from 'date-fns'
 
 const STORAGE_KEY = 'household-transactions';
 
+// Función para emitir un evento personalizado cuando localStorage cambia
+const emitStorageEvent = (key: string, newValue: string | null) => {
+  // Emitir evento personalizado para la misma ventana
+  // Esto funciona mejor que StorageEvent que solo funciona entre pestañas
+  const event = new CustomEvent('localStorageChange', {
+    detail: { key, newValue }
+  });
+  window.dispatchEvent(event);
+};
+
 export const getTransactions = (): Transaction[] => {
   if (typeof window === 'undefined') return [];
   
@@ -47,13 +57,19 @@ export const saveTransaction = (transaction: Transaction): void => {
     transactions.push(transaction);
   }
   
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+  const serialized = JSON.stringify(transactions);
+  localStorage.setItem(STORAGE_KEY, serialized);
+  // Emitir evento personalizado para notificar el cambio
+  emitStorageEvent(STORAGE_KEY, serialized);
 };
 
 export const deleteTransaction = (id: string): void => {
   const transactions = getTransactions();
   const filtered = transactions.filter(t => t.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+  const serialized = JSON.stringify(filtered);
+  localStorage.setItem(STORAGE_KEY, serialized);
+  // Emitir evento personalizado para notificar el cambio
+  emitStorageEvent(STORAGE_KEY, serialized);
 };
 
 export const updateTransaction = (id: string, updates: Partial<Transaction>): void => {
@@ -61,7 +77,10 @@ export const updateTransaction = (id: string, updates: Partial<Transaction>): vo
   const index = transactions.findIndex(t => t.id === id);
   if (index !== -1) {
     transactions[index] = { ...transactions[index], ...updates };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+    const serialized = JSON.stringify(transactions);
+    localStorage.setItem(STORAGE_KEY, serialized);
+    // Emitir evento personalizado para notificar el cambio
+    emitStorageEvent(STORAGE_KEY, serialized);
   }
 };
 

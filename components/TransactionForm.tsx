@@ -92,9 +92,7 @@ export default function TransactionForm({ user, transaction, onTransactionAdded,
       saveTransaction(newTransaction);
     }
     
-    onTransactionAdded();
-    
-    // Reset form
+    // Reset form primero
     setAmount('');
     setDescription('');
     setCategory('');
@@ -102,6 +100,12 @@ export default function TransactionForm({ user, transaction, onTransactionAdded,
     setIncomeType('personal');
     setIsInstallment(false);
     setTotalInstallments('1');
+    
+    // Llamar al callback con un pequeño delay para asegurar que localStorage esté sincronizado
+    // Esto es especialmente importante en dispositivos móviles
+    setTimeout(() => {
+      onTransactionAdded();
+    }, 100);
   };
 
   return (
@@ -153,7 +157,7 @@ export default function TransactionForm({ user, transaction, onTransactionAdded,
             min="0"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white text-gray-900"
             placeholder="0.00"
             required
           />
@@ -168,7 +172,7 @@ export default function TransactionForm({ user, transaction, onTransactionAdded,
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white text-gray-900"
             placeholder="Ej: Supermercado, Salario, etc."
             required
           />
@@ -339,7 +343,7 @@ export default function TransactionForm({ user, transaction, onTransactionAdded,
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white text-gray-900"
             required
           />
         </div>
@@ -385,7 +389,7 @@ export default function TransactionForm({ user, transaction, onTransactionAdded,
                   max="24"
                   value={totalInstallments}
                   onChange={(e) => setTotalInstallments(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white text-gray-900"
                   placeholder="Ej: 3, 6, 12"
                   required={isInstallment}
                 />
@@ -420,7 +424,7 @@ export default function TransactionForm({ user, transaction, onTransactionAdded,
             type="text"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white text-gray-900"
             placeholder="Ej: Comida, Servicios, Transporte, etc."
           />
         </div>

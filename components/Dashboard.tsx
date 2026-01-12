@@ -5,7 +5,6 @@ import { User, Transaction } from '@/types';
 import { 
   getMonthlySummary, 
   getUserSummary, 
-  getCurrentMonth,
   formatCurrency,
   getPendingInstallments
 } from '@/lib/storage';
@@ -34,18 +33,76 @@ export default function Dashboard({
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
   const [monthlySummary, setMonthlySummary] = useState(getMonthlySummary(currentMonth, user));
   const [userSummary, setUserSummary] = useState(getUserSummary(user, currentMonth));
+  const [refreshKey, setRefreshKey] = useState(0); // Key para forzar re-render de componentes
 
   const refreshData = () => {
-    setMonthlySummary(getMonthlySummary(currentMonth, user));
-    setUserSummary(getUserSummary(user, currentMonth));
+    // Forzar recarga de datos frescos desde localStorage
+    const newMonthlySummary = getMonthlySummary(currentMonth, user);
+    const newUserSummary = getUserSummary(user, currentMonth);
+    setMonthlySummary(newMonthlySummary);
+    setUserSummary(newUserSummary);
+    setRefreshKey(prev => prev + 1); // Incrementar key para forzar re-render
   };
 
   useEffect(() => {
     refreshData();
   }, [currentMonth, user]);
 
+  // Escuchar cambios en localStorage (útil para sincronización entre pestañas y misma ventana)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent | CustomEvent) => {
+      const key = 'key' in e ? e.key : (e as CustomEvent).detail?.key;
+      if (key === 'household-transactions') {
+        // Delay para asegurar que localStorage esté completamente sincronizado
+        setTimeout(() => {
+          refreshData();
+        }, 50);
+      }
+    };
+
+    // Escuchar eventos estándar de storage (entre pestañas)
+    window.addEventListener('storage', handleStorageChange as EventListener);
+    // Escuchar eventos personalizados (misma ventana)
+    window.addEventListener('localStorageChange', handleStorageChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange as EventListener);
+      window.removeEventListener('localStorageChange', handleStorageChange as EventListener);
+    };
+  }, [currentMonth, user]);
+
+  // Escuchar cuando la ventana vuelve a estar activa (útil para móviles)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Forzar recarga cuando la ventana vuelve a estar visible
+        setTimeout(() => {
+          refreshData();
+        }, 100); // Pequeño delay para asegurar que localStorage esté sincronizado
+      }
+    };
+
+    const handleFocus = () => {
+      // También recargar cuando la ventana recibe foco
+      setTimeout(() => {
+        refreshData();
+      }, 100);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [currentMonth, user]);
+
   const handleTransactionAdded = () => {
-    refreshData();
+    // Pequeño delay para asegurar que localStorage se haya actualizado
+    setTimeout(() => {
+      refreshData();
+    }, 50);
     setShowForm(false);
     setEditingTransaction(undefined);
   };
@@ -61,7 +118,10 @@ export default function Dashboard({
   };
 
   const handleTransactionDeleted = () => {
-    refreshData();
+    // Pequeño delay para asegurar que localStorage se haya actualizado
+    setTimeout(() => {
+      refreshData();
+    }, 50);
   };
 
   const changeMonth = (direction: 'prev' | 'next') => {
@@ -115,15 +175,44 @@ export default function Dashboard({
                 </span>
                 <button
                   onClick={() => changeMonth('next')}
-                  className="p-1.5 sm:p-2 hover:bg-white rounded transition-colors flex-shrink-0 disabled:opacity-50"
+                  className="p-1.5 sm:p-2 hover:bg-white rounded transition-colors flex-shrink-0"
                   aria-label="Mes siguiente"
-                  disabled={currentMonth >= getCurrentMonth()}
                 >
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
               </div>
+
+              {/* Botón de actualizar - visible en mobile */}
+              <button
+                onClick={(e) => {
+                  const btn = e.currentTarget;
+                  const icon = btn.querySelector('svg');
+                  
+                  // Animación de rotación
+                  if (icon) {
+                    icon.style.transition = 'transform 0.5s ease';
+                    icon.style.transform = 'rotate(360deg)';
+                    setTimeout(() => {
+                      if (icon) {
+                        icon.style.transform = 'rotate(0deg)';
+                      }
+                    }, 500);
+                  }
+                  
+                  // Forzar recarga de datos
+                  refreshData();
+                }}
+                className="sm:hidden bg-gray-500 hover:bg-gray-600 active:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl text-sm flex items-center justify-center gap-2"
+                aria-label="Actualizar datos"
+                title="Actualizar datos"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Actualizar
+              </button>
 
               <button
                 onClick={() => setShowForm(!showForm)}
@@ -170,6 +259,7 @@ export default function Dashboard({
 
         {/* Transaction List */}
         <TransactionList 
+          key={`transactions-${refreshKey}`}
           transactions={monthlySummary.transactions}
           currentUser={user}
           onTransactionDeleted={handleTransactionDeleted}

@@ -32,3 +32,19 @@ body {
   }
 }
 
+/* Asegurar que los inputs tengan texto visible */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="email"],
+textarea,
+select {
+  color: #111827 !important; /* text-gray-900 */
+  background-color: #ffffff !important; /* bg-white */
+}
+
+input::placeholder {
+  color: #9ca3af !important; /* text-gray-400 */
+  opacity: 1;
+}
+

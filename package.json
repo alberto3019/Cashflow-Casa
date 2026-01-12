@@ -9,11 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "date-fns": "^2.30.0",
+    "firebase": "^12.7.0",
     "next": "^14.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "recharts": "^2.10.3",
-    "date-fns": "^2.30.0"
+    "recharts": "^2.10.3"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",
@@ -25,4 +26,3 @@
     "typescript": "^5.3.3"
   }
 }
-

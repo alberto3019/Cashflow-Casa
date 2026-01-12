@@ -1,7 +1,51 @@
 import { Transaction, MonthlySummary, UserSummary, User } from '@/types';
 import { format, parseISO, startOfMonth, endOfMonth, addMonths } from 'date-fns';
+import { db, doc, setDoc, getDoc } from './firebase';
 
 const STORAGE_KEY = 'household-transactions';
+const FIRESTORE_COLLECTION = 'household-data';
+const FIRESTORE_DOC = 'transactions';
+
+// Verificar si Firestore está disponible
+const isFirestoreAvailable = () => {
+  return typeof window !== 'undefined' && db !== null;
+};
+
+// Sincronizar con Firestore (sin bloquear si falla)
+const syncToFirestore = async (transactions: Transaction[]) => {
+  if (!isFirestoreAvailable()) return;
+  
+  try {
+    const docRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
+    await setDoc(docRef, {
+      transactions,
+      lastUpdated: new Date().toISOString()
+    }, { merge: false });
+  } catch (error) {
+    console.warn('Error al sincronizar con Firestore (continuando con localStorage):', error);
+  }
+};
+
+// Cargar desde Firestore
+export const loadFromFirestore = async (): Promise<Transaction[] | null> => {
+  if (!isFirestoreAvailable()) return null;
+  
+  try {
+    const docRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data.transactions && Array.isArray(data.transactions)) {
+        return data.transactions as Transaction[];
+      }
+    }
+    return null;
+  } catch (error) {
+    console.warn('Error al cargar desde Firestore:', error);
+    return null;
+  }
+};
 
 // Función para emitir un evento personalizado cuando localStorage cambia
 const emitStorageEvent = (key: string, newValue: string | null) => {
@@ -78,6 +122,8 @@ export const saveTransaction = (transaction: Transaction): void => {
   localStorage.setItem(STORAGE_KEY, serialized);
   // Emitir evento personalizado para notificar el cambio
   emitStorageEvent(STORAGE_KEY, serialized);
+  // Sincronizar con Firestore (async, no bloquea)
+  syncToFirestore(transactions);
 };
 
 export const deleteTransaction = (id: string): void => {
@@ -87,6 +133,8 @@ export const deleteTransaction = (id: string): void => {
   localStorage.setItem(STORAGE_KEY, serialized);
   // Emitir evento personalizado para notificar el cambio
   emitStorageEvent(STORAGE_KEY, serialized);
+  // Sincronizar con Firestore (async, no bloquea)
+  syncToFirestore(filtered);
 };
 
 export const updateTransaction = (id: string, updates: Partial<Transaction>): void => {
@@ -98,6 +146,8 @@ export const updateTransaction = (id: string, updates: Partial<Transaction>): vo
     localStorage.setItem(STORAGE_KEY, serialized);
     // Emitir evento personalizado para notificar el cambio
     emitStorageEvent(STORAGE_KEY, serialized);
+    // Sincronizar con Firestore (async, no bloquea)
+    syncToFirestore(transactions);
   }
 };
 
@@ -280,6 +330,8 @@ export const importTransactions = (jsonData: string, merge: boolean = false): { 
     const serialized = JSON.stringify(finalTransactions);
     localStorage.setItem(STORAGE_KEY, serialized);
     emitStorageEvent(STORAGE_KEY, serialized);
+    // Sincronizar con Firestore (async, no bloquea)
+    syncToFirestore(finalTransactions);
 
     return { 
       success: true, 
